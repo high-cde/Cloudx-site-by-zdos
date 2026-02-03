@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>CloudX Civic Lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="scanline"></div>
+
+<header class="hero">
+  <h1 class="title">CLOUDX CIVIC LAB</h1>
+  <p class="subtitle">La piattaforma civile per lavoro, studio e collaborazione.</p>
+
+  <div class="cta-container">
+    <a class="cta" href="#roles">Professionista</a>
+    <a class="cta" href="#roles">Cliente</a>
+    <a class="cta" href="#roles">Studente</a>
+  </div>
+</header>
+
+<section class="section" id="about">
+  <h2>Cos'è CloudX</h2>
+  <p>
+    CloudX è un ecosistema civile che unisce professionisti, clienti e studenti in un ambiente meritocratico
+    alimentato da <span class="dsn">DSN</span> e governato da <span class="hk">Dr HighKali</span>.
+  </p>
+</section>
+
+<section class="section" id="dsn">
+  <h2>Come guadagnare DSN</h2>
+  <ul>
+    <li>Contributi ai progetti</li>
+    <li>Studio e percorsi formativi</li>
+    <li>Partecipazione alla community</li>
+    <li>Uptime hosting</li>
+    <li>Engagement</li>
+  </ul>
+</section>
+
+<section class="section" id="roles">
+  <h2>I Ruoli</h2>
+  <div class="roles-grid">
+    <div class="role-card">
+      <h3>Professionista</h3>
+      <p>Crea, collabora, guadagna DSN e costruisci reputazione verificata.</p>
+    </div>
+    <div class="role-card">
+      <h3>Cliente</h3>
+      <p>Pubblica job, trova talenti e partecipa all’economia civile.</p>
+    </div>
+    <div class="role-card">
+      <h3>Studente</h3>
+      <p>Impara, contribuisci e sali di livello nel sistema CloudX.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="terminal">
+  <h2>Terminale CloudX / ZDOS</h2>
+
+  <div class="terminal">
+    <div class="terminal-header">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+      <span class="term-title">zdos@cloudx:~</span>
+    </div>
+
+    <div class="terminal-body" id="terminal-output">
+      <p>CloudX Civic Lab Terminal v1.0</p>
+      <p>Digitare <span class="cmd">help</span> per vedere i comandi disponibili.</p>
+    </div>
+
+    <div class="terminal-input">
+      <span class="prompt">></span>
+      <input id="terminal-input" type="text" autocomplete="off" />
+    </div>
+  </div>
+</section>
+
+<section class="section" id="wallet">
+  <h2>DSN Wallet</h2>
+
+  <div class="wallet">
+    <div class="wallet-balance">
+      <h3>Saldo DSN</h3>
+      <p id="dsn-balance">12.4</p>
+    </div>
+
+    <div class="wallet-actions">
+      <button onclick="earnDSN()">Guadagna DSN</button>
+      <button onclick="spendDSN()">Spendi DSN</button>
+    </div>
+
+    <div class="wallet-log" id="wallet-log">
+      <p>[LOG] Wallet inizializzato.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="join">
+  <h2>Unisciti al progetto</h2>
+  <p>Segui il repository, apri una issue o proponi un contributo.</p>
+  <a class="repo-link" href="https://github.com/high-cde/Cloudx-site-by-zdos">Vai al repository</a>
+</section>
+
+<footer>
+  <p>© 2026 CloudX Civic Lab — Powered by ZDOS</p>
+</footer>
+
+<script>
+  const output = document.getElementById("terminal-output");
+  const input = document.getElementById("terminal-input");
+
+  const commands = {
+    help: "Comandi disponibili: help, dsn, whoami, clear, highkali",
+    dsn: "DSN attuale: 12.4 — Livello: Seed",
+    whoami: "Utente: Guest — Ruolo: Visitor",
+    highkali: "Dr HighKali: Sistema attivo. Nessuna anomalia rilevata.",
+    clear: "clear"
+  };
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim();
+      input.value = "";
+
+      if (cmd === "clear") {
+        output.innerHTML = "";
+        return;
+      }
+
+      const response = commands[cmd] || "Comando non riconosciuto.";
+      output.innerHTML += `<p><span class="prompt">></span> ${cmd}</p>`;
+      output.innerHTML += `<p>${response}</p>`;
+      output.scrollTop = output.scrollHeight;
+    }
+  });
+
+  let balance = 12.4;
+  const balanceEl = document.getElementById("dsn-balance");
+  const logEl = document.getElementById("wallet-log");
+
+  function log(msg) {
+    logEl.innerHTML += `<p>${msg}</p>`;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function earnDSN() {
+    const amount = (Math.random() * 2 + 0.5).toFixed(2);
+    balance += parseFloat(amount);
+    balanceEl.textContent = balance.toFixed(2);
+    log(`[+] Guadagnati ${amount} DSN`);
+  }
+
+  function spendDSN() {
+    const amount = (Math.random() * 1 + 0.2).toFixed(2);
+    if (balance < amount) {
+      log(`[!] Saldo insufficiente.`);
+      return;
+    }
+    balance -= parseFloat(amount);
+    balanceEl.textContent = balance.toFixed(2);
+    log(`[-] Spesi ${amount} DSN`);
+  }
+</script>
+
+</body>
+</html>
