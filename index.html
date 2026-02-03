@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>CloudX Civic Lab</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Ethers.js per MetaMask -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 </head>
 
 <body>
@@ -15,17 +18,18 @@
   <p class="subtitle">La piattaforma civile per lavoro, studio e collaborazione.</p>
 
   <div class="cta-container">
-    <a class="cta" href="#roles">Professionista</a>
-    <a class="cta" href="#roles">Cliente</a>
-    <a class="cta" href="#roles">Studente</a>
+    <button id="connectWallet" class="cta">Connetti MetaMask</button>
+    <p id="walletAddress"></p>
   </div>
 </header>
 
 <section class="section" id="about">
   <h2>Cos'è CloudX</h2>
   <p>
-    CloudX è un ecosistema civile che unisce professionisti, clienti e studenti in un ambiente meritocratico
-    alimentato da <span class="dsn">DSN</span> e governato da <span class="hk">Dr HighKali</span>.
+    CloudX è un ecosistema civile che unisce professionisti, clienti e studenti
+    in un ambiente meritocratico alimentato da
+    <span class="dsn">DSN</span> e governato da
+    <span class="hk">Dr HighKali</span>.
   </p>
 </section>
 
@@ -87,12 +91,11 @@
   <div class="wallet">
     <div class="wallet-balance">
       <h3>Saldo DSN</h3>
-      <p id="dsn-balance">12.4</p>
+      <p id="dsn-balance">0.00</p>
     </div>
 
     <div class="wallet-actions">
-      <button onclick="earnDSN()">Guadagna DSN</button>
-      <button onclick="spendDSN()">Spendi DSN</button>
+      <button onclick="loadDSNBalance()">Aggiorna Saldo</button>
     </div>
 
     <div class="wallet-log" id="wallet-log">
@@ -104,7 +107,9 @@
 <section class="section" id="join">
   <h2>Unisciti al progetto</h2>
   <p>Segui il repository, apri una issue o proponi un contributo.</p>
-  <a class="repo-link" href="https://github.com/high-cde/Cloudx-site-by-zdos">Vai al repository</a>
+  <a class="repo-link" href="https://github.com/high-cde/Cloudx-site-by-zdos">
+    Vai al repository
+  </a>
 </section>
 
 <footer>
@@ -112,59 +117,87 @@
 </footer>
 
 <script>
-  const output = document.getElementById("terminal-output");
-  const input = document.getElementById("terminal-input");
+  let userAddress = null;
 
-  const commands = {
-    help: "Comandi disponibili: help, dsn, whoami, clear, highkali",
-    dsn: "DSN attuale: 12.4 — Livello: Seed",
-    whoami: "Utente: Guest — Ruolo: Visitor",
-    highkali: "Dr HighKali: Sistema attivo. Nessuna anomalia rilevata.",
-    clear: "clear"
-  };
-
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      const cmd = input.value.trim();
-      input.value = "";
-
-      if (cmd === "clear") {
-        output.innerHTML = "";
-        return;
-      }
-
-      const response = commands[cmd] || "Comando non riconosciuto.";
-      output.innerHTML += `<p><span class="prompt">></span> ${cmd}</p>`;
-      output.innerHTML += `<p>${response}</p>`;
-      output.scrollTop = output.scrollHeight;
-    }
-  });
-
-  let balance = 12.4;
-  const balanceEl = document.getElementById("dsn-balance");
-  const logEl = document.getElementById("wallet-log");
-
-  function log(msg) {
-    logEl.innerHTML += `<p>${msg}</p>`;
-    logEl.scrollTop = logEl.scrollHeight;
-  }
-
-  function earnDSN() {
-    const amount = (Math.random() * 2 + 0.5).toFixed(2);
-    balance += parseFloat(amount);
-    balanceEl.textContent = balance.toFixed(2);
-    log(`[+] Guadagnati ${amount} DSN`);
-  }
-
-  function spendDSN() {
-    const amount = (Math.random() * 1 + 0.2).toFixed(2);
-    if (balance < amount) {
-      log(`[!] Saldo insufficiente.`);
+  async function connectWallet() {
+    if (typeof window.ethereum === "undefined") {
+      alert("MetaMask non è installato.");
       return;
     }
-    balance -= parseFloat(amount);
-    balanceEl.textContent = balance.toFixed(2);
-    log(`[-] Spesi ${amount} DSN`);
+
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+
+      userAddress = accounts[0];
+      document.getElementById("walletAddress").innerText =
+        "Wallet connesso: " + userAddress;
+
+      log("[WALLET] Connesso: " + userAddress);
+
+      setTimeout(loadDSNBalance, 1000);
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  document.getElementById("connectWallet")
+    .addEventListener("click", connectWallet);
+
+  const DSN_TOKEN = "INSERISCI_CONTRACT_ADDRESS";
+
+  const ERC20_ABI = [
+    {
+      "constant": true,
+      "inputs": [{"name": "_owner", "type": "address"}],
+      "name": "balanceOf",
+      "outputs": [{"name": "balance", "type": "uint256"}],
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [{"name": "", "type": "uint8"}],
+      "type": "function"
+    }
+  ];
+
+  async function loadDSNBalance() {
+    if (!userAddress) {
+      log("[ERRORE] Connetti prima MetaMask.");
+      return;
+    }
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(
+        DSN_TOKEN,
+        ERC20_ABI,
+        provider
+      );
+
+      const decimals = await contract.decimals();
+      const rawBalance = await contract.balanceOf(userAddress);
+      const balance = rawBalance / (10 ** decimals);
+
+      document.getElementById("dsn-balance").innerText =
+        balance.toFixed(2);
+
+      log("[SYNC] Saldo DSN aggiornato dal wallet reale.");
+
+    } catch (err) {
+      log("[ERRORE] Impossibile leggere il saldo DSN.");
+      console.error(err);
+    }
+  }
+
+  function log(msg) {
+    const logEl = document.getElementById("wallet-log");
+    logEl.innerHTML += "<p>" + msg + "</p>";
+    logEl.scrollTop = logEl.scrollHeight;
   }
 </script>
 
